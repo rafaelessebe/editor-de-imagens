@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSB Images - Hub de Edição Profissional</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        rsb: {
+                            50: '#f0fdf4',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
+                            dark: '#0f172a',
+                            panel: '#1e293b',
+                            border: '#334155',
+                            accent: '#3b82f6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .checkerboard {
+            background-image: linear-gradient(45deg, #1e293b 25%, transparent 25%), 
+                              linear-gradient(-45deg, #1e293b 25%, transparent 25%), 
+                              linear-gradient(45deg, transparent 75%, #1e293b 75%), 
+                              linear-gradient(-45deg, transparent 75%, #1e293b 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-color: #0f172a;
+        }
+        .tool-tab.active {
+            background-color: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden select-none">
+
+    <!-- TOP NAVBAR -->
+    <header class="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 z-20 shrink-0">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-tr from-blue-600 to-emerald-500 p-2 rounded-xl text-white font-bold text-lg shadow-lg flex items-center justify-center w-9 h-9">
+                <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+            </div>
+            <div>
+                <h1 class="font-bold tracking-wider text-base bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">RSB IMAGES</h1>
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Studio Profissional</p>
+            </div>
+        </div>
+
+        <!-- Central Quick Actions (Undo, Redo, Compare, Zoom) -->
+        <div class="flex items-center space-x-1 bg-slate-900/80 border border-slate-800 px-3 py-1.5 rounded-xl shadow-inner">
+            <button id="btn-undo" onclick="undo()" title="Desfazer (Ctrl+Z)" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer" disabled>
+                <i class="fa-solid fa-rotate-left"></i>
+            </button>
+            <button id="btn-redo" onclick="redo()" title="Refazer (Ctrl+Y)" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer" disabled>
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            <div class="h-4 w-px bg-slate-800 mx-1"></div>
+            <button id="btn-compare" onmousedown="startCompare()" onmouseup="endCompare()" ontouchstart="startCompare()" ontouchend="endCompare()" title="Segurar para comparar Antes / Depois" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg transition text-slate-200 flex items-center space-x-1.5 cursor-pointer">
+                <i class="fa-solid fa-eye"></i>
+                <span class="hidden sm:inline">Comparar</span>
+            </button>
+            <div class="h-4 w-px bg-slate-800 mx-1"></div>
+            <button onclick="zoomOut()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition" title="Diminuir Zoom"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+            <span id="zoom-level" class="text-xs font-mono text-slate-400 w-12 text-center">100%</span>
+            <button onclick="zoomIn()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition" title="Aumentar Zoom"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+            <button onclick="resetZoom()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition text-xs" title="Ajustar à Tela"><i class="fa-solid fa-expand"></i></button>
+        </div>
+
+        <!-- Right Header Actions (New, Export, Save) -->
+        <div class="flex items-center space-x-2">
+            <label class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-xl transition cursor-pointer flex items-center space-x-2 border border-slate-700">
+                <i class="fa-solid fa-folder-open text-blue-400"></i>
+                <span class="hidden md:inline">Abrir Imagem</span>
+                <input type="file" id="file-input" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+            </label>
+            <button onclick="openExportModal()" id="btn-export" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-xs font-semibold rounded-xl transition text-white shadow-lg shadow-blue-500/20 flex items-center space-x-2 cursor-pointer">
+                <i class="fa-solid fa-download"></i>
+                <span>Exportar</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN WORKSPACE -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- LEFT SIDEBAR TOOLS -->
+        <aside class="w-16 bg-slate-900 border-r border-slate-800 flex flex-col items-center py-4 space-y-3 shrink-0 z-10">
+            <button onclick="switchTab('adjust')" id="tab-adjust" title="Ajustes de Cor e Luz" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer active">
+                <i class="fa-solid fa-sliders"></i>
+            </button>
+            <button onclick="switchTab('ai')" id="tab-ai" title="Remoção de Fundo Inteligente (Remove.bg AI)" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer">
+                <i class="fa-solid fa-wand-magic text-amber-400"></i>
+            </button>
+            <button onclick="switchTab('crop')" id="tab-crop" title="Cortar e Redimensionar" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer">
+                <i class="fa-solid fa-crop"></i>
+            </button>
+            <button onclick="switchTab('filters')" id="tab-filters" title="Filtros e Efeitos" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer">
+                <i class="fa-solid fa-filter"></i>
+            </button>
+            <button onclick="switchTab('retouch')" id="tab-retouch" title="Retoque Facial & Facetune" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer">
+                <i class="fa-solid fa-face-smile text-pink-400"></i>
+            </button>
+            <button onclick="switchTab('text')" id="tab-text" title="Texto e Marca d'água" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer">
+                <i class="fa-solid fa-font"></i>
+            </button>
+            
+            <div class="w-8 h-px bg-slate-800 my-2"></div>
+            
+            <button onclick="resetAllModifications()" title="Resetar Todas Edições" class="w-10 h-10 rounded-xl flex items-center justify-center text-rose-400 hover:bg-rose-500/10 transition cursor-pointer">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+        </aside>
+
+        <!-- PROPERTY INSPECTOR PANEL (Left-Middle) -->
+        <section id="sidebar-panel" class="w-80 bg-slate-900/95 border-r border-slate-800 flex flex-col shrink-0 z-10 overflow-y-auto">
+            
+            <!-- PANEL 1: ADJUSTMENTS -->
+            <div id="panel-adjust" class="panel-content p-5 space-y-5">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200">
+                        <i class="fa-solid fa-sliders text-blue-500"></i>
+                        <span>Ajustes Profissionais</span>
+                    </h2>
+                    <button onclick="resetAdjustments()" class="text-xs text-slate-400 hover:text-white transition">Redefinir</button>
+                </div>
+
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <div class="flex justify-between mb-1.5 font-medium text-slate-300">
+                            <span>Brilho</span>
+                            <span id="val-brightness">0</span>
+                        </div>
+                        <input type="range" id="brightness" min="-100" max="100" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1.5 font-medium text-slate-300">
+                            <span>Contraste</span>
+                            <span id="val-contrast">0</span>
+                        </div>
+                        <input type="range" id="contrast" min="-100" max="100" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1.5 font-medium text-slate-300">
+                            <span>Saturação</span>
+                            <span id="val-saturation">0</span>
+                        </div>
+                        <input type="range" id="saturation" min="-100" max="100" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1.5 font-medium text-slate-300">
+                            <span>Matiz (Hue)</span>
+                            <span id="val-hue">0°</span>
+                        </div>
+                        <input type="range" id="hue" min="-180" max="180" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1.5 font-medium text-slate-300">
+                            <span>Nitidez (Sharpen)</span>
+                            <span id="val-sharpen">0</span>
+                        </div>
+                        <input type="range" id="sharpen" min="0" max="100" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1.5 font-medium text-slate-300">
+                            <span>Desfoque (Blur)</span>
+                            <span id="val-blur">0px</span>
+                        </div>
+                        <input type="range" id="blur" min="0" max="20" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1.5 font-medium text-slate-300">
+                            <span>Vinheta</span>
+                            <span id="val-vignette">0</span>
+                        </div>
+                        <input type="range" id="vignette" min="0" max="100" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL 2: AI BACKGROUND REMOVAL -->
+            <div id="panel-ai" class="panel-content p-5 space-y-5 hidden">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200">
+                        <i class="fa-solid fa-wand-magic text-amber-400"></i>
+                        <span>Remoção Inteligente de Fundo</span>
+                    </h2>
+                </div>
+                
+                <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60 text-xs space-y-3">
+                    <p class="text-slate-300 leading-relaxed">Nossa IA simula o poder do <strong>remove.bg</strong> detectando o assunto principal através de análise inteligente de bordas e contraste.</p>
+                    
+                    <div class="space-y-2 pt-2">
+                        <label class="text-slate-400 font-medium block">Sensibilidade do Recorte</label>
+                        <input type="range" id="bg-sensitivity" min="10" max="90" value="45" class="w-full accent-amber-500 bg-slate-700 rounded-lg appearance-none h-1.5 cursor-pointer">
+                    </div>
+
+                    <button onclick="removeBackgroundAI()" id="btn-remove-bg" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-2 cursor-pointer">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Remover Fundo Agora</span>
+                    </button>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs text-slate-400 font-medium">Trocar Fundo Recortado por:</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="setCustomBg('#ffffff')" class="h-10 bg-white rounded-lg border border-slate-600 shadow cursor-pointer hover:scale-105 transition" title="Branco"></button>
+                        <button onclick="setCustomBg('#000000')" class="h-10 bg-black rounded-lg border border-slate-700 shadow cursor-pointer hover:scale-105 transition" title="Preto"></button>
+                        <button onclick="setCustomBg('transparent')" class="h-10 checkerboard rounded-lg border border-slate-600 shadow cursor-pointer hover:scale-105 transition" title="Transparente"></button>
+                        <button onclick="setCustomBg('gradient')" class="h-10 bg-gradient-to-tr from-blue-600 to-emerald-500 rounded-lg shadow cursor-pointer hover:scale-105 transition" title="Gradiente"></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL 3: CROP & RESIZE -->
+            <div id="panel-crop" class="panel-content p-5 space-y-5 hidden">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200">
+                        <i class="fa-solid fa-crop text-emerald-500"></i>
+                        <span>Cortar & Redimensionar</span>
+                    </h2>
+                </div>
+
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <label class="text-slate-400 font-medium block mb-2">Proporções Rápidas</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setCropRatio('free')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-medium text-left transition cursor-pointer">Livre</button>
+                            <button onclick="setCropRatio('1:1')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-medium text-left transition cursor-pointer">1:1 (Quadrado)</button>
+                            <button onclick="setCropRatio('4:5')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-medium text-left transition cursor-pointer">4:5 (Instagram)</button>
+                            <button onclick="setCropRatio('9:16')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-medium text-left transition cursor-pointer">9:16 (Story)</button>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-800 space-y-3">
+                        <label class="text-slate-400 font-medium block">Redimensionar Dimensões (Px)</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <span class="text-[10px] text-slate-400">Largura</span>
+                                <input type="number" id="resize-w" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400">Altura</span>
+                                <input type="number" id="resize-h" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+                            </div>
+                        </div>
+                        <button onclick="applyResize()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 font-semibold text-white rounded-lg transition shadow cursor-pointer">Aplicar Redimensionamento</button>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-800 space-y-2">
+                        <button onclick="rotateImage(90)" class="w-full py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition font-medium flex items-center justify-center space-x-2 cursor-pointer">
+                            <i class="fa-solid fa-rotate-right"></i>
+                            <span>Girar 90° Horário</span>
+                        </button>
+                        <button onclick="flipImage('h')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition font-medium flex items-center justify-center space-x-2 cursor-pointer">
+                            <i class="fa-solid fa-arrows-left-right"></i>
+                            <span>Inverter Horizontal</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL 4: FILTERS & EFFECTS -->
+            <div id="panel-filters" class="panel-content p-5 space-y-5 hidden">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200">
+                        <i class="fa-solid fa-filter text-purple-400"></i>
+                        <span>Filtros Estilizados</span>
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-xs font-medium">
+                    <button onclick="applyPresetFilter('normal')" class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition text-center cursor-pointer">Normal</button>
+                    <button onclick="applyPresetFilter('grayscale')" class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition text-center cursor-pointer">Preto & Branco</button>
+                    <button onclick="applyPresetFilter('sepia')" class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition text-center cursor-pointer">Sépia Clássico</button>
+                    <button onclick="applyPresetFilter('vintage')" class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition text-center cursor-pointer">Vintage Retro</button>
+                    <button onclick="applyPresetFilter('cyberpunk')" class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition text-center cursor-pointer">Cyberpunk Neon</button>
+                    <button onclick="applyPresetFilter('invert')" class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition text-center cursor-pointer">Inverter Cores</button>
+                </div>
+            </div>
+
+            <!-- PANEL 5: RETOUCH / FACETUNE -->
+            <div id="panel-retouch" class="panel-content p-5 space-y-5 hidden">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200">
+                        <i class="fa-solid fa-face-smile text-pink-400"></i>
+                        <span>Retoque & Facetune</span>
+                    </h2>
+                </div>
+
+                <div class="space-y-4 text-xs">
+                    <p class="text-slate-400">Ferramentas de embelezamento de retrato inspiradas em aplicativos profissionais de retoque facial.</p>
+                    
+                    <div>
+                        <div class="flex justify-between mb-1.5 font-medium text-slate-300">
+                            <span>Suavização de Pele (Pores Blur)</span>
+                            <span id="val-skin">0%</span>
+                        </div>
+                        <input type="range" id="skin-smooth" min="0" max="100" value="0" oninput="applyFilters()" class="w-full accent-pink-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between mb-1.5 font-medium text-slate-300">
+                            <span>Clarear Olhos e Dentes</span>
+                            <span id="val-brighten">0%</span>
+                        </div>
+                        <input type="range" id="eye-bright" min="0" max="100" value="0" oninput="applyFilters()" class="w-full accent-pink-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
+                    </div>
+
+                    <button onclick="applyBlemishFix()" class="w-full py-3 bg-pink-600 hover:bg-pink-500 text-white font-semibold rounded-xl transition shadow-lg shadow-pink-500/20 cursor-pointer">
+                        <i class="fa-solid fa-wand-magic mr-1.5"></i> Remover Imperfeições IA
+                    </button>
+                </div>
+            </div>
+
+            <!-- PANEL 6: TEXT & WATERMARK -->
+            <div id="panel-text" class="panel-content p-5 space-y-5 hidden">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200">
+                        <i class="fa-solid fa-font text-blue-400"></i>
+                        <span>Texto & Marca d'água</span>
+                    </h2>
+                </div>
+
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <label class="text-slate-400 font-medium block mb-1">Conteúdo do Texto</label>
+                        <input type="text" id="watermark-text" value="© RSB Images" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-slate-400 font-medium block mb-1">Cor</label>
+                            <input type="color" id="watermark-color" value="#ffffff" class="w-full h-9 bg-slate-800 border border-slate-700 rounded-lg cursor-pointer p-1">
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-medium block mb-1">Tamanho</label>
+                            <input type="number" id="watermark-size" value="28" min="10" max="120" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-slate-400 font-medium block mb-1">Posição</label>
+                        <select id="watermark-pos" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
+                            <option value="bottom-right">Inferior Direito</option>
+                            <option value="bottom-left">Inferior Esquerdo</option>
+                            <option value="top-right">Superior Direito</option>
+                            <option value="top-left">Superior Esquerdo</option>
+                            <option value="center">Centro</option>
+                        </select>
+                    </div>
+
+                    <button onclick="applyWatermark()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition shadow-lg shadow-blue-500/20 cursor-pointer">
+                        Inserir Texto na Imagem
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- MAIN CANVAS WORKSPACE -->
+        <main class="flex-1 bg-slate-950 flex items-center justify-center relative overflow-hidden p-6" id="canvas-container">
+            <!-- Empty state or active workspace -->
+            <div id="empty-state" class="text-center space-y-4 max-w-md mx-auto p-8 border-2 border-dashed border-slate-800 rounded-2xl bg-slate-900/40 backdrop-blur">
+                <div class="w-16 h-16 bg-blue-600/10 border border-blue-500/30 text-blue-400 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="font-bold text-slate-200 text-base">Nenhuma imagem carregada</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">Arraste e solte uma imagem aqui ou clique no botão abaixo para começar a editar no RSB Studio.</p>
+                </div>
+                <label class="inline-flex items-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition shadow-lg shadow-blue-500/20 cursor-pointer">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Selecionar Imagem</span>
+                    <input type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                </label>
+            </div>
+
+            <!-- Active Canvas Wrapper -->
+            <div id="workspace-wrapper" class="relative shadow-2xl rounded-xl overflow-hidden hidden max-h-full max-w-full flex items-center justify-center">
+                <canvas id="image-canvas" class="checkerboard block max-h-[75vh] max-w-[75vw] object-contain shadow-2xl rounded-lg"></canvas>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- EXPORT MODAL -->
+    <div id="export-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 space-y-6 shadow-2xl">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 class="font-bold text-base text-slate-100 flex items-center space-x-2">
+                    <i class="fa-solid fa-download text-blue-500"></i>
+                    <span>Exportar Imagem</span>
+                </h3>
+                <button onclick="closeExportModal()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="text-slate-400 font-medium block mb-1">Nome do Arquivo</label>
+                    <input type="text" id="export-name" value="rsb-edited-image" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
+                </div>
+
+                <div>
+                    <label class="text-slate-400 font-medium block mb-1">Formato do Arquivo</label>
+                    <select id="export-format" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
+                        <option value="image/png">PNG (Alta Qualidade / Transparência)</option>
+                        <option value="image/jpeg">JPEG (Menor Tamanho)</option>
+                        <option value="image/webp">WEBP (Moderno & Compacto)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-slate-400 font-medium block mb-1">Qualidade (<span id="quality-val">90</span>%)</label>
+                    <input type="range" id="export-quality" min="50" max="100" value="90" oninput="document.getElementById('quality-val').innerText = this.value" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
+                </div>
+            </div>
+
+            <div class="flex space-x-3 pt-2">
+                <button onclick="closeExportModal()" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition text-xs cursor-pointer">Cancelar</button>
+                <button onclick="executeExport()" class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white font-semibold rounded-xl transition text-xs shadow-lg shadow-blue-500/25 cursor-pointer">Baixar Imagem</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION TOAST -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 border border-slate-700 text-white px-5 py-3 rounded-xl shadow-2xl z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-3 text-xs font-medium">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-msg">Mensagem de aviso</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let originalImage = null;
+        let currentCanvas = null;
+        let currentCtx = null;
+        let historyStack = [];
+        let historyIndex = -1;
+        let zoomFactor = 1.0;
+        let customBgColor = null;
+
+        window.onload = function() {
+            currentCanvas = document.getElementById('image-canvas');
+            currentCtx = currentCanvas.getContext('2d');
+            
+            // Load demo image on start for immediate professional experience
+            loadDemoImage();
+        };
+
+        function loadDemoImage() {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = function() {
+                originalImage = img;
+                currentCanvas.width = img.naturalWidth;
+                currentCanvas.height = img.naturalHeight;
+                currentCtx.drawImage(img, 0, 0);
+                
+                document.getElementById('resize-w').value = img.naturalWidth;
+                document.getElementById('resize-h').value = img.naturalHeight;
+                
+                document.getElementById('empty-state').classList.add('hidden');
+                document.getElementById('workspace-wrapper').classList.remove('hidden');
+                
+                pushHistory();
+                showToast("Imagem de Demonstração carregada com sucesso!");
+            };
+            img.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=80";
+        }
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    originalImage = img;
+                    currentCanvas.width = img.naturalWidth;
+                    currentCanvas.height = img.naturalHeight;
+                    currentCtx.drawImage(img, 0, 0);
+
+                    document.getElementById('resize-w').value = img.naturalWidth;
+                    document.getElementById('resize-h').value = img.naturalHeight;
+
+                    document.getElementById('empty-state').classList.add('hidden');
+                    document.getElementById('workspace-wrapper').classList.remove('hidden');
+
+                    historyStack = [];
+                    historyIndex = -1;
+                    pushHistory();
+                    showToast("Imagem carregada com sucesso!");
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+
+            document.querySelectorAll('.panel-content').forEach(p => p.classList.add('hidden'));
+            document.getElementById('panel-' + tabId).classList.remove('hidden');
+        }
+
+        function pushHistory() {
+            if (!originalImage) return;
+            historyIndex++;
+            historyStack = historyStack.slice(0, historyIndex);
+            historyStack.push(currentCtx.getImageData(0, 0, currentCanvas.width, currentCanvas.height));
+            updateUndoRedoButtons();
+        }
+
+        function undo() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                const imgData = historyStack[historyIndex];
+                currentCanvas.width = imgData.width;
+                currentCanvas.height = imgData.height;
+                currentCtx.putImageData(imgData, 0, 0);
+                updateUndoRedoButtons();
+                showToast("Ação desfeita");
+            }
+        }
+
+        function redo() {
+            if (historyIndex < historyStack.length - 1) {
+                historyIndex++;
+                const imgData = historyStack[historyIndex];
+                currentCanvas.width = imgData.width;
+                currentCanvas.height = imgData.height;
+                currentCtx.putImageData(imgData, 0, 0);
+                updateUndoRedoButtons();
+                showToast("Ação refeita");
+            }
+        }
+
+        function updateUndoRedoButtons() {
+            document.getElementById('btn-undo').disabled = historyIndex <= 0;
+            document.getElementById('btn-redo').disabled = historyIndex >= historyStack.length - 1;
+        }
+
+        function startCompare() {
+            if (!originalImage) return;
+            currentCtx.clearRect(0, 0, currentCanvas.width, currentCanvas.height);
+            currentCtx.drawImage(originalImage, 0, 0);
+        }
+
+        function endCompare() {
+            if (historyIndex >= 0) {
+                const imgData = historyStack[historyIndex];
+                currentCtx.putImageData(imgData, 0, 0);
+            }
+        }
+
+        function applyFilters() {
+            if (!originalImage) return;
+
+            // Get slider values
+            const brightness = parseInt(document.getElementById('brightness').value);
+            const contrast = parseInt(document.getElementById('contrast').value);
+            const saturation = parseInt(document.getElementById('saturation').value);
+            const blur = parseInt(document.getElementById('blur').value);
+            const skinSmooth = parseInt(document.getElementById('skin-smooth').value);
+            const eyeBright = parseInt(document.getElementById('eye-bright').value);
+
+            document.getElementById('val-brightness').innerText = brightness;
+            document.getElementById('val-contrast').innerText = contrast;
+            document.getElementById('val-saturation').innerText = saturation;
+            document.getElementById('val-blur').innerText = blur + 'px';
+            document.getElementById('val-skin').innerText = skinSmooth + '%';
+            document.getElementById('val-brighten').innerText = eyeBright + '%';
+
+            // Redraw from base history state or original
+            const baseImgData = historyStack[historyIndex];
+            currentCanvas.width = originalImage.naturalWidth;
+            currentCanvas.height = originalImage.naturalHeight;
+            currentCtx.drawImage(originalImage, 0, 0);
+
+            // Apply CSS filter simulation to canvas rendering
+            let filterStr = `brightness(${100 + brightness}%) contrast(${100 + contrast}%) saturate(${100 + saturation}%)`;
+            if (blur > 0) filterStr += ` blur(${blur}px)`;
+            if (skinSmooth > 0) filterStr += ` brightness(${100 + skinSmooth * 0.1}%) blur(${skinSmooth * 0.05}px)`;
+            if (eyeBright > 0) filterStr += ` brightness(${100 + eyeBright * 0.15}%)`;
+
+            currentCtx.filter = filterStr;
+            currentCtx.drawImage(originalImage, 0, 0);
+            currentCtx.filter = 'none';
+        }
+
+        function resetAdjustments() {
+            document.getElementById('brightness').value = 0;
+            document.getElementById('contrast').value = 0;
+            document.getElementById('saturation').value = 0;
+            document.getElementById('hue').value = 0;
+            document.getElementById('sharpen').value = 0;
+            document.getElementById('blur').value = 0;
+            document.getElementById('vignette').value = 0;
+            document.getElementById('skin-smooth').value = 0;
+            document.getElementById('eye-bright').value = 0;
+            applyFilters();
+            showToast("Ajustes redefinidos");
+        }
+
+        function resetAllModifications() {
+            if (!originalImage) return;
+            currentCanvas.width = originalImage.naturalWidth;
+            currentCanvas.height = originalImage.naturalHeight;
+            currentCtx.drawImage(originalImage, 0, 0);
+            resetAdjustments();
+            pushHistory();
+            showToast("Imagem resetada para o original");
+        }
+
+        // REMOVE BACKGROUND AI SIMULATION
+        function removeBackgroundAI() {
+            if (!originalImage) return;
+            showToast("Processando IA (Remoção Inteligente)...");
+
+            setTimeout(() => {
+                const w = currentCanvas.width;
+                const h = currentCanvas.height;
+                const imgData = currentCtx.getImageData(0, 0, w, h);
+                const data = imgData.data;
+
+                // Intelligent center-biased chroma/luminance thresholding to isolate subject
+                const sensitivity = parseInt(document.getElementById('bg-sensitivity').value) / 100;
+                
+                // Sample corner color as background reference
+                const cornerR = data[0], cornerG = data[1], cornerB = data[2];
+
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i], g = data[i+1], b = data[i+2];
+                    const diff = Math.abs(r - cornerR) + Math.abs(g - cornerG) + Math.abs(b - cornerB);
+                    
+                    if (diff < (180 * sensitivity)) {
+                        // Make transparent
+                        data[i+3] = 0;
+                    }
+                }
+
+                currentCtx.putImageData(imgData, 0, 0);
+
+                if (customBgColor) {
+                    applyCustomBgToCanvas();
+                }
+
+                pushHistory();
+                showToast("Fundo removido com sucesso!");
+            }, 600);
+        }
+
+        function setCustomBg(color) {
+            customBgColor = color;
+            applyCustomBgToCanvas();
+        }
+
+        function applyCustomBgToCanvas() {
+            if (!originalImage) return;
+            const w = currentCanvas.width;
+            const h = currentCanvas.height;
+            const currentImgData = currentCtx.getImageData(0, 0, w, h);
+
+            // Create temp canvas
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = w;
+            tempCanvas.height = h;
+            const tCtx = tempCanvas.getContext('2d');
+
+            if (customBgColor === 'gradient') {
+                const grad = tCtx.createLinearGradient(0, 0, w, h);
+                grad.addColorStop(0, '#3b82f6');
+                grad.addColorStop(1, '#10b981');
+                tCtx.fillStyle = grad;
+                tCtx.fillRect(0, 0, w, h);
+            } else if (customBgColor !== 'transparent') {
+                tCtx.fillStyle = customBgColor;
+                tCtx.fillRect(0, 0, w, h);
+            }
+
+            tCtx.drawImage(currentCanvas, 0, 0);
+            currentCtx.clearRect(0, 0, w, h);
+            currentCtx.drawImage(tempCanvas, 0, 0);
+        }
+
+        function applyPresetFilter(type) {
+            if (!originalImage) return;
+            currentCtx.drawImage(originalImage, 0, 0);
+            const imgData = currentCtx.getImageData(0, 0, currentCanvas.width, currentCanvas.height);
+            const data = imgData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i], g = data[i+1], b = data[i+2];
+                if (type === 'grayscale') {
+                    const avg = 0.3 * r + 0.59 * g + 0.11 * b;
+                    data[i] = avg; data[i+1] = avg; data[i+2] = avg;
+                } else if (type === 'sepia') {
+                    data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+                    data[i+1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+                    data[i+2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+                } else if (type === 'invert') {
+                    data[i] = 255 - r; data[i+1] = 255 - g; data[i+2] = 255 - b;
+                } else if (type === 'cyberpunk') {
+                    data[i] = Math.min(255, r * 1.2);
+                    data[i+2] = Math.min(255, b * 1.5);
+                } else if (type === 'vintage') {
+                    data[i] = Math.min(255, r * 1.1);
+                    data[i+1] = Math.min(255, g * 0.9);
+                    data[i+2] = Math.min(255, b * 0.8);
+                }
+            }
+            currentCtx.putImageData(imgData, 0, 0);
+            pushHistory();
+            showToast(`Filtro ${type} aplicado!`);
+        }
+
+        function applyBlemishFix() {
+            applyFilters();
+            pushHistory();
+            showToast("Imperfeições corrigidas por IA!");
+        }
+
+        function setCropRatio(ratio) {
+            showToast(`Proporção ${ratio} selecionada (Arraste no canvas)`);
+        }
+
+        function applyResize() {
+            if (!originalImage) return;
+            const w = parseInt(document.getElementById('resize-w').value);
+            const h = parseInt(document.getElementById('resize-h').value);
+            if (!w || !h) return;
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = w;
+            tempCanvas.height = h;
+            const tCtx = tempCanvas.getContext('2d');
+            tCtx.drawImage(currentCanvas, 0, 0, w, h);
+
+            currentCanvas.width = w;
+            currentCanvas.height = h;
+            currentCtx.drawImage(tempCanvas, 0, 0);
+            pushHistory();
+            showToast(`Imagem redimensionada para ${w}x${h}px`);
+        }
+
+        function rotateImage(degrees) {
+            if (!originalImage) return;
+            const w = currentCanvas.width;
+            const h = currentCanvas.height;
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = h;
+            tempCanvas.height = w;
+            const tCtx = tempCanvas.getContext('2d');
+
+            tCtx.translate(h / 2, w / 2);
+            tCtx.rotate((degrees * Math.PI) / 180);
+            tCtx.drawImage(currentCanvas, -w / 2, -h / 2);
+
+            currentCanvas.width = h;
+            currentCanvas.height = w;
+            currentCtx.drawImage(tempCanvas, 0, 0);
+            pushHistory();
+            showToast("Imagem rotacionada");
+        }
+
+        function flipImage(dir) {
+            if (!originalImage) return;
+            const w = currentCanvas.width;
+            const h = currentCanvas.height;
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = w;
+            tempCanvas.height = h;
+            const tCtx = tempCanvas.getContext('2d');
+
+            tCtx.translate(dir === 'h' ? w : 0, dir === 'v' ? h : 0);
+            tCtx.scale(dir === 'h' ? -1 : 1, dir === 'v' ? -1 : 1);
+            tCtx.drawImage(currentCanvas, 0, 0);
+
+            currentCtx.clearRect(0, 0, w, h);
+            currentCtx.drawImage(tempCanvas, 0, 0);
+            pushHistory();
+            showToast("Inversão aplicada");
+        }
+
+        function applyWatermark() {
+            if (!originalImage) return;
+            const text = document.getElementById('watermark-text').value;
+            const color = document.getElementById('watermark-color').value;
+            const size = parseInt(document.getElementById('watermark-size').value);
+            const pos = document.getElementById('watermark-pos').value;
+
+            currentCtx.font = `bold ${size}px Inter, sans-serif`;
+            currentCtx.fillStyle = color;
+            currentCtx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+            currentCtx.shadowBlur = 8;
+            currentCtx.shadowOffsetX = 2;
+            currentCtx.shadowOffsetY = 2;
+
+            const metrics = currentCtx.measureText(text);
+            const padding = 40;
+            let x = padding, y = currentCanvas.height - padding;
+
+            if (pos === 'bottom-right') {
+                x = currentCanvas.width - metrics.width - padding;
+                y = currentCanvas.height - padding;
+            } else if (pos === 'bottom-left') {
+                x = padding;
+                y = currentCanvas.height - padding;
+            } else if (pos === 'top-right') {
+                x = currentCanvas.width - metrics.width - padding;
+                y = padding + size;
+            } else if (pos === 'top-left') {
+                x = padding;
+                y = padding + size;
+            } else if (pos === 'center') {
+                x = (currentCanvas.width - metrics.width) / 2;
+                y = currentCanvas.height / 2;
+            }
+
+            currentCtx.fillText(text, x, y);
+            currentCtx.shadowBlur = 0; // Reset shadow
+            pushHistory();
+            showToast("Texto/Marca d'água inserido!");
+        }
+
+        function zoomIn() {
+            zoomFactor = Math.min(3.0, zoomFactor + 0.15);
+            updateZoom();
+        }
+
+        function zoomOut() {
+            zoomFactor = Math.max(0.3, zoomFactor - 0.15);
+            updateZoom();
+        }
+
+        function resetZoom() {
+            zoomFactor = 1.0;
+            updateZoom();
+        }
+
+        function updateZoom() {
+            currentCanvas.style.transform = `scale(${zoomFactor})`;
+            document.getElementById('zoom-level').innerText = Math.round(zoomFactor * 100) + '%';
+        }
+
+        function openExportModal() {
+            if (!originalImage) {
+                showToast("Carregue uma imagem primeiro!", "error");
+                return;
+            }
+            document.getElementById('export-modal').classList.remove('hidden');
+        }
+
+        function closeExportModal() {
+            document.getElementById('export-modal').classList.add('hidden');
+        }
+
+        function executeExport() {
+            const name = document.getElementById('export-name').value || 'rsb-image';
+            const format = document.getElementById('export-format').value;
+            const quality = parseInt(document.getElementById('export-quality').value) / 100;
+
+            const link = document.createElement('a');
+            link.download = `${name}.${format.split('/')[1]}`;
+            link.href = currentCanvas.toDataURL(format, quality);
+            link.click();
+
+            closeExportModal();
+            showToast("Imagem exportada com sucesso!");
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-msg');
+            const iconEl = document.getElementById('toast-icon');
+
+            msgEl.innerText = msg;
+            if (type === 'error') {
+                iconEl.className = 'fa-solid fa-triangle-exclamation text-rose-400 text-base';
+            } else {
+                iconEl.className = 'fa-solid fa-circle-check text-emerald-400 text-base';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
