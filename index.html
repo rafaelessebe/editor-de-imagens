@@ -42,7 +42,6 @@
             color: #ffffff;
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
         }
-        /* Ajuste pro Cropper funcionar sobre o Canvas */
         .cropper-container { max-width: 100% !important; max-height: 75vh !important; }
     </style>
 </head>
@@ -68,10 +67,10 @@
                 <i class="fa-solid fa-eye"></i> <span class="hidden sm:inline">Comparar</span>
             </button>
             <div class="h-4 w-px bg-slate-800 mx-1"></div>
-            <button onclick="zoomOut()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+            <button onclick="zoomOut()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition cursor-pointer"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
             <span id="zoom-level" class="text-xs font-mono text-slate-400 w-12 text-center">100%</span>
-            <button onclick="zoomIn()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-            <button onclick="resetZoom()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition text-xs"><i class="fa-solid fa-expand"></i></button>
+            <button onclick="zoomIn()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition cursor-pointer"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+            <button onclick="resetZoom()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition text-xs cursor-pointer"><i class="fa-solid fa-expand"></i></button>
         </div>
 
         <div class="flex items-center space-x-2">
@@ -91,65 +90,86 @@
 
         <!-- LEFT SIDEBAR TOOLS -->
         <aside class="w-16 bg-slate-900 border-r border-slate-800 flex flex-col items-center py-4 space-y-3 shrink-0 z-10">
-            <button onclick="switchTab('adjust')" id="tab-adjust" title="Ajustes de Cor e Luz" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer active"><i class="fa-solid fa-sliders"></i></button>
-            <button onclick="switchTab('crop')" id="tab-crop" title="Cortar e Redimensionar" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"><i class="fa-solid fa-crop"></i></button>
-            <button onclick="switchTab('filters')" id="tab-filters" title="Filtros e Efeitos" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"><i class="fa-solid fa-filter"></i></button>
-            <button onclick="switchTab('retouch')" id="tab-retouch" title="Retoque Facial" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"><i class="fa-solid fa-face-smile text-pink-400"></i></button>
+            <button onclick="switchTab('adjust')" id="tab-adjust" title="Ajustes Profissionais" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer active"><i class="fa-solid fa-sliders"></i></button>
+            <button onclick="switchTab('crop')" id="tab-crop" title="Cortar" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"><i class="fa-solid fa-crop text-emerald-500"></i></button>
+            <button onclick="switchTab('resize')" id="tab-resize" title="Redimensionar" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"><i class="fa-solid fa-expand text-blue-400"></i></button>
+            <button onclick="switchTab('rotate')" id="tab-rotate" title="Girar" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"><i class="fa-solid fa-rotate-right text-amber-400"></i></button>
+            <button onclick="switchTab('filters')" id="tab-filters" title="Filtros e Efeitos" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"><i class="fa-solid fa-filter text-purple-400"></i></button>
             <button onclick="switchTab('text')" id="tab-text" title="Texto e Marca d'água" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"><i class="fa-solid fa-font"></i></button>
             <div class="w-8 h-px bg-slate-800 my-2"></div>
-            <button onclick="resetAllModifications()" title="Resetar Todas Edições" class="w-10 h-10 rounded-xl flex items-center justify-center text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"><i class="fa-solid fa-rotate-right"></i></button>
+            <button onclick="resetAllModifications()" title="Resetar Todas Edições" class="w-10 h-10 rounded-xl flex items-center justify-center text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"><i class="fa-solid fa-rotate-left"></i></button>
         </aside>
 
         <!-- PROPERTY INSPECTOR PANEL -->
-        <section id="sidebar-panel" class="w-80 bg-slate-900/95 border-r border-slate-800 flex flex-col shrink-0 z-10 overflow-y-auto">
+        <section id="sidebar-panel" class="w-80 bg-slate-900/95 border-r border-slate-800 flex flex-col shrink-0 z-10 overflow-y-auto custom-scroll">
             
             <!-- PANEL 1: ADJUSTMENTS -->
             <div id="panel-adjust" class="panel-content p-5 space-y-5">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-800">
                     <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200"><i class="fa-solid fa-sliders text-blue-500"></i><span>Ajustes Profissionais</span></h2>
-                    <button onclick="resetAdjustments()" class="text-xs text-slate-400 hover:text-white transition">Redefinir</button>
+                    <button onclick="resetAdjustments()" class="text-xs text-slate-400 hover:text-white transition cursor-pointer">Redefinir</button>
                 </div>
                 <div class="space-y-4 text-xs">
                     <div>
                         <div class="flex justify-between mb-1.5 font-medium text-slate-300"><span>Brilho</span><span id="val-brightness">0</span></div>
-                        <input type="range" id="brightness" min="-100" max="100" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5">
+                        <input type="range" id="brightness" min="-100" max="100" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
                     </div>
                     <div>
                         <div class="flex justify-between mb-1.5 font-medium text-slate-300"><span>Contraste</span><span id="val-contrast">0</span></div>
-                        <input type="range" id="contrast" min="-100" max="100" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5">
+                        <input type="range" id="contrast" min="-100" max="100" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
                     </div>
                     <div>
                         <div class="flex justify-between mb-1.5 font-medium text-slate-300"><span>Saturação</span><span id="val-saturation">0</span></div>
-                        <input type="range" id="saturation" min="-100" max="100" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5">
+                        <input type="range" id="saturation" min="-100" max="100" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
                     </div>
                     <div>
-                        <div class="flex justify-between mb-1.5 font-medium text-slate-300"><span>Desfoque (Blur)</span><span id="val-blur">0px</span></div>
-                        <input type="range" id="blur" min="0" max="20" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5">
+                        <div class="flex justify-between mb-1.5 font-medium text-slate-300"><span>Matiz (Temperatura)</span><span id="val-hue">0°</span></div>
+                        <input type="range" id="hue" min="-180" max="180" value="0" oninput="applyFilters()" class="w-full accent-amber-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1.5 font-medium text-slate-300"><span>Sépia</span><span id="val-sepia">0%</span></div>
+                        <input type="range" id="sepia" min="0" max="100" value="0" oninput="applyFilters()" class="w-full accent-amber-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
+                    </div>
+                    <div class="pt-3 border-t border-slate-800">
+                        <div class="flex justify-between mb-1.5 font-medium text-slate-300"><span>Suavização de Pele</span><span id="val-skin">0%</span></div>
+                        <input type="range" id="skin-smooth" min="0" max="100" value="0" oninput="applyFilters()" class="w-full accent-pink-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1.5 font-medium text-slate-300"><span>Desfoque Global</span><span id="val-blur">0px</span></div>
+                        <input type="range" id="blur" min="0" max="20" value="0" oninput="applyFilters()" class="w-full accent-blue-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
                     </div>
                 </div>
             </div>
 
-            <!-- PANEL 2: CROP & RESIZE -->
+            <!-- PANEL 2: CROP -->
             <div id="panel-crop" class="panel-content p-5 space-y-5 hidden">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-                    <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200"><i class="fa-solid fa-crop text-emerald-500"></i><span>Cortar & Redimensionar</span></h2>
+                    <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200"><i class="fa-solid fa-crop text-emerald-500"></i><span>Cortar Imagem</span></h2>
                 </div>
                 <div class="space-y-4 text-xs">
                     <div>
-                        <label class="text-slate-400 font-medium block mb-2">Recorte Livre e Proporções (Arraste no mouse)</label>
+                        <label class="text-slate-400 font-medium block mb-2">Selecione a proporção e arraste no mouse</label>
                         <div class="grid grid-cols-2 gap-2">
                             <button onclick="setCropRatio('free')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-medium text-left transition cursor-pointer">Livre</button>
                             <button onclick="setCropRatio('1:1')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-medium text-left transition cursor-pointer">1:1 (Quadrado)</button>
                             <button onclick="setCropRatio('4:5')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-medium text-left transition cursor-pointer">4:5 (Insta)</button>
                             <button onclick="setCropRatio('9:16')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-medium text-left transition cursor-pointer">9:16 (Story)</button>
                         </div>
-                        <button onclick="applyCrop()" class="w-full mt-3 py-2.5 bg-blue-600 hover:bg-blue-500 font-semibold text-white rounded-lg transition shadow cursor-pointer flex items-center justify-center space-x-2">
+                        <button onclick="applyCrop()" class="w-full mt-4 py-3 bg-emerald-600 hover:bg-emerald-500 font-semibold text-white rounded-lg transition shadow cursor-pointer flex items-center justify-center space-x-2">
                             <i class="fa-solid fa-check"></i><span>Aplicar Recorte</span>
                         </button>
                     </div>
+                </div>
+            </div>
 
-                    <div class="pt-3 border-t border-slate-800 space-y-3">
-                        <label class="text-slate-400 font-medium block">Redimensionar (Proporção Mantida)</label>
+            <!-- PANEL 3: RESIZE -->
+            <div id="panel-resize" class="panel-content p-5 space-y-5 hidden">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200"><i class="fa-solid fa-expand text-blue-400"></i><span>Redimensionar</span></h2>
+                </div>
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <label class="text-slate-400 font-medium block mb-3">Redimensionar (Proporção Mantida)</label>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <span class="text-[10px] text-slate-400">Largura (px)</span>
@@ -160,17 +180,27 @@
                                 <input type="number" id="resize-h" oninput="updateResize('h')" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
                             </div>
                         </div>
-                        <button onclick="applyResize()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 font-semibold text-white rounded-lg transition shadow cursor-pointer">Aplicar Tamanho</button>
-                    </div>
-
-                    <div class="pt-2 border-t border-slate-800 space-y-2">
-                        <button onclick="rotateImage(90)" class="w-full py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition font-medium flex items-center justify-center space-x-2 cursor-pointer"><i class="fa-solid fa-rotate-right"></i><span>Girar 90°</span></button>
-                        <button onclick="flipImage('h')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition font-medium flex items-center justify-center space-x-2 cursor-pointer"><i class="fa-solid fa-arrows-left-right"></i><span>Inverter Horizontal</span></button>
+                        <button onclick="applyResize()" class="w-full mt-4 py-3 bg-blue-600 hover:bg-blue-500 font-semibold text-white rounded-lg transition shadow cursor-pointer">Aplicar Novo Tamanho</button>
                     </div>
                 </div>
             </div>
 
-            <!-- PANEL 3: FILTERS & EFFECTS -->
+            <!-- PANEL 4: ROTATE -->
+            <div id="panel-rotate" class="panel-content p-5 space-y-5 hidden">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200"><i class="fa-solid fa-rotate-right text-amber-400"></i><span>Girar e Inverter</span></h2>
+                </div>
+                <div class="space-y-3 text-xs">
+                    <button onclick="rotateImage(90)" class="w-full py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition font-medium flex items-center justify-center space-x-2 cursor-pointer">
+                        <i class="fa-solid fa-rotate-right text-amber-400"></i><span>Girar 90°</span>
+                    </button>
+                    <button onclick="flipImage('h')" class="w-full py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition font-medium flex items-center justify-center space-x-2 cursor-pointer">
+                        <i class="fa-solid fa-arrows-left-right text-amber-400"></i><span>Inverter Horizontal</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PANEL 5: FILTERS & EFFECTS -->
             <div id="panel-filters" class="panel-content p-5 space-y-5 hidden">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-800">
                     <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200"><i class="fa-solid fa-filter text-purple-400"></i><span>Filtros Estilizados</span></h2>
@@ -183,20 +213,7 @@
                 </div>
             </div>
 
-            <!-- PANEL 4: RETOUCH / FACETUNE -->
-            <div id="panel-retouch" class="panel-content p-5 space-y-5 hidden">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-                    <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200"><i class="fa-solid fa-face-smile text-pink-400"></i><span>Retoque & Facetune</span></h2>
-                </div>
-                <div class="space-y-4 text-xs">
-                    <div>
-                        <div class="flex justify-between mb-1.5 font-medium text-slate-300"><span>Suavização de Pele</span><span id="val-skin">0%</span></div>
-                        <input type="range" id="skin-smooth" min="0" max="100" value="0" oninput="applyFilters()" class="w-full accent-pink-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
-                    </div>
-                </div>
-            </div>
-
-            <!-- PANEL 5: TEXT & WATERMARK -->
+            <!-- PANEL 6: TEXT & WATERMARK -->
             <div id="panel-text" class="panel-content p-5 space-y-5 hidden">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-800">
                     <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200"><i class="fa-solid fa-font text-blue-400"></i><span>Texto & Marca d'água</span></h2>
@@ -399,11 +416,13 @@
             destroyCropper();
             
             const newImg = new Image();
-            newImg.onload = () => { originalImage = newImg; pushHistory(); };
+            newImg.onload = () => { 
+                originalImage = newImg; 
+                pushHistory(); 
+            };
             newImg.src = currentCanvas.toDataURL();
             
             showToast("Recorte aplicado!");
-            initCropper();
         }
 
         function updateResize(changedElement) {
@@ -432,10 +451,14 @@
 
             currentCanvas.width = w;
             currentCanvas.height = h;
+            currentCtx.clearRect(0, 0, w, h);
             currentCtx.drawImage(tempCanvas, 0, 0);
             
             const newImg = new Image();
-            newImg.onload = () => { originalImage = newImg; pushHistory(); };
+            newImg.onload = () => { 
+                originalImage = newImg; 
+                pushHistory(); 
+            };
             newImg.src = currentCanvas.toDataURL();
 
             showToast(`Redimensionado para ${w}x${h}px`);
@@ -452,8 +475,10 @@
             tCtx.translate(h / 2, w / 2);
             tCtx.rotate((degrees * Math.PI) / 180);
             tCtx.drawImage(currentCanvas, -w / 2, -h / 2);
+            
             currentCanvas.width = h;
             currentCanvas.height = w;
+            currentCtx.clearRect(0, 0, h, w);
             currentCtx.drawImage(tempCanvas, 0, 0);
             
             const newImg = new Image();
@@ -546,20 +571,25 @@
             const brightness = parseInt(document.getElementById('brightness').value);
             const contrast = parseInt(document.getElementById('contrast').value);
             const saturation = parseInt(document.getElementById('saturation').value);
+            const hue = parseInt(document.getElementById('hue').value);
+            const sepia = parseInt(document.getElementById('sepia').value);
             const blur = parseInt(document.getElementById('blur').value);
             const skinSmooth = parseInt(document.getElementById('skin-smooth').value);
 
             document.getElementById('val-brightness').innerText = brightness;
             document.getElementById('val-contrast').innerText = contrast;
             document.getElementById('val-saturation').innerText = saturation;
+            document.getElementById('val-hue').innerText = hue + '°';
+            document.getElementById('val-sepia').innerText = sepia + '%';
             document.getElementById('val-blur').innerText = blur + 'px';
             document.getElementById('val-skin').innerText = skinSmooth + '%';
 
             currentCanvas.width = originalImage.naturalWidth;
             currentCanvas.height = originalImage.naturalHeight;
+            currentCtx.clearRect(0, 0, currentCanvas.width, currentCanvas.height);
             currentCtx.drawImage(originalImage, 0, 0);
 
-            let filterStr = `brightness(${100 + brightness}%) contrast(${100 + contrast}%) saturate(${100 + saturation}%)`;
+            let filterStr = `brightness(${100 + brightness}%) contrast(${100 + contrast}%) saturate(${100 + saturation}%) hue-rotate(${hue}deg) sepia(${sepia}%)`;
             if (blur > 0) filterStr += ` blur(${blur}px)`;
             if (skinSmooth > 0) filterStr += ` brightness(${100 + skinSmooth * 0.1}%) blur(${skinSmooth * 0.05}px)`;
 
@@ -622,6 +652,8 @@
             document.getElementById('brightness').value = 0;
             document.getElementById('contrast').value = 0;
             document.getElementById('saturation').value = 0;
+            document.getElementById('hue').value = 0;
+            document.getElementById('sepia').value = 0;
             document.getElementById('blur').value = 0;
             document.getElementById('skin-smooth').value = 0;
             applyFilters();
