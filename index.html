@@ -21,8 +21,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" rel="stylesheet">
     <!-- Cropper.js JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
-    <!-- IMGLY Background Removal (IA real no navegador) -->
-    <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.3/dist/browser/index.js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -66,7 +64,7 @@
             <button id="btn-undo" onclick="undo()" title="Desfazer (Ctrl+Z)" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer" disabled><i class="fa-solid fa-rotate-left"></i></button>
             <button id="btn-redo" onclick="redo()" title="Refazer (Ctrl+Y)" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer" disabled><i class="fa-solid fa-rotate-right"></i></button>
             <div class="h-4 w-px bg-slate-800 mx-1"></div>
-            <button id="btn-compare" onmousedown="startCompare()" onmouseup="endCompare()" title="Segurar para comparar" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg transition text-slate-200 flex items-center space-x-1.5 cursor-pointer">
+            <button id="btn-compare" onmousedown="startCompare()" onmouseup="endCompare()" ontouchstart="startCompare()" ontouchend="endCompare()" title="Segurar para comparar" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg transition text-slate-200 flex items-center space-x-1.5 cursor-pointer">
                 <i class="fa-solid fa-eye"></i> <span class="hidden sm:inline">Comparar</span>
             </button>
             <div class="h-4 w-px bg-slate-800 mx-1"></div>
@@ -94,7 +92,6 @@
         <!-- LEFT SIDEBAR TOOLS -->
         <aside class="w-16 bg-slate-900 border-r border-slate-800 flex flex-col items-center py-4 space-y-3 shrink-0 z-10">
             <button onclick="switchTab('adjust')" id="tab-adjust" title="Ajustes de Cor e Luz" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer active"><i class="fa-solid fa-sliders"></i></button>
-            <button onclick="switchTab('ai')" id="tab-ai" title="Remoção de Fundo Inteligente" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"><i class="fa-solid fa-wand-magic text-amber-400"></i></button>
             <button onclick="switchTab('crop')" id="tab-crop" title="Cortar e Redimensionar" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"><i class="fa-solid fa-crop"></i></button>
             <button onclick="switchTab('filters')" id="tab-filters" title="Filtros e Efeitos" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"><i class="fa-solid fa-filter"></i></button>
             <button onclick="switchTab('retouch')" id="tab-retouch" title="Retoque Facial" class="tool-tab w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"><i class="fa-solid fa-face-smile text-pink-400"></i></button>
@@ -132,30 +129,7 @@
                 </div>
             </div>
 
-            <!-- PANEL 2: AI BACKGROUND REMOVAL -->
-            <div id="panel-ai" class="panel-content p-5 space-y-5 hidden">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-                    <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200"><i class="fa-solid fa-wand-magic text-amber-400"></i><span>Remoção Inteligente (IA)</span></h2>
-                </div>
-                <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60 text-xs space-y-3">
-                    <p class="text-slate-300 leading-relaxed">Nossa IA detecta o objeto automaticamente como o <strong>remove.bg</strong>.</p>
-                    <p class="text-[10px] text-amber-400/80"><i class="fa-solid fa-circle-info"></i> O 1º uso fará o download do modelo IA de ~40MB.</p>
-                    <button onclick="removeBackgroundAI()" id="btn-remove-bg" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-2 cursor-pointer">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i><span>Remover Fundo Agora</span>
-                    </button>
-                </div>
-                <div class="space-y-2">
-                    <label class="text-xs text-slate-400 font-medium">Trocar Fundo Recortado por:</label>
-                    <div class="grid grid-cols-4 gap-2">
-                        <button onclick="setCustomBg('#ffffff')" class="h-10 bg-white rounded-lg border border-slate-600 shadow cursor-pointer hover:scale-105 transition" title="Branco"></button>
-                        <button onclick="setCustomBg('#000000')" class="h-10 bg-black rounded-lg border border-slate-700 shadow cursor-pointer hover:scale-105 transition" title="Preto"></button>
-                        <button onclick="setCustomBg('transparent')" class="h-10 checkerboard rounded-lg border border-slate-600 shadow cursor-pointer hover:scale-105 transition" title="Transparente"></button>
-                        <button onclick="setCustomBg('gradient')" class="h-10 bg-gradient-to-tr from-blue-600 to-emerald-500 rounded-lg shadow cursor-pointer hover:scale-105 transition" title="Gradiente"></button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PANEL 3: CROP & RESIZE -->
+            <!-- PANEL 2: CROP & RESIZE -->
             <div id="panel-crop" class="panel-content p-5 space-y-5 hidden">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-800">
                     <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200"><i class="fa-solid fa-crop text-emerald-500"></i><span>Cortar & Redimensionar</span></h2>
@@ -190,13 +164,13 @@
                     </div>
 
                     <div class="pt-2 border-t border-slate-800 space-y-2">
-                        <button onclick="rotateImage(90)" class="w-full py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition font-medium flex items-center justify-center space-x-2"><i class="fa-solid fa-rotate-right"></i><span>Girar 90°</span></button>
-                        <button onclick="flipImage('h')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition font-medium flex items-center justify-center space-x-2"><i class="fa-solid fa-arrows-left-right"></i><span>Inverter Horizontal</span></button>
+                        <button onclick="rotateImage(90)" class="w-full py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition font-medium flex items-center justify-center space-x-2 cursor-pointer"><i class="fa-solid fa-rotate-right"></i><span>Girar 90°</span></button>
+                        <button onclick="flipImage('h')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition font-medium flex items-center justify-center space-x-2 cursor-pointer"><i class="fa-solid fa-arrows-left-right"></i><span>Inverter Horizontal</span></button>
                     </div>
                 </div>
             </div>
 
-            <!-- PANEL 4: FILTERS & EFFECTS -->
+            <!-- PANEL 3: FILTERS & EFFECTS -->
             <div id="panel-filters" class="panel-content p-5 space-y-5 hidden">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-800">
                     <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200"><i class="fa-solid fa-filter text-purple-400"></i><span>Filtros Estilizados</span></h2>
@@ -209,7 +183,7 @@
                 </div>
             </div>
 
-            <!-- PANEL 5: RETOUCH / FACETUNE -->
+            <!-- PANEL 4: RETOUCH / FACETUNE -->
             <div id="panel-retouch" class="panel-content p-5 space-y-5 hidden">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-800">
                     <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200"><i class="fa-solid fa-face-smile text-pink-400"></i><span>Retoque & Facetune</span></h2>
@@ -217,12 +191,12 @@
                 <div class="space-y-4 text-xs">
                     <div>
                         <div class="flex justify-between mb-1.5 font-medium text-slate-300"><span>Suavização de Pele</span><span id="val-skin">0%</span></div>
-                        <input type="range" id="skin-smooth" min="0" max="100" value="0" oninput="applyFilters()" class="w-full accent-pink-500 bg-slate-800 rounded-lg appearance-none h-1.5">
+                        <input type="range" id="skin-smooth" min="0" max="100" value="0" oninput="applyFilters()" class="w-full accent-pink-500 bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer">
                     </div>
                 </div>
             </div>
 
-            <!-- PANEL 6: TEXT & WATERMARK -->
+            <!-- PANEL 5: TEXT & WATERMARK -->
             <div id="panel-text" class="panel-content p-5 space-y-5 hidden">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-800">
                     <h2 class="font-bold text-sm flex items-center space-x-2 text-slate-200"><i class="fa-solid fa-font text-blue-400"></i><span>Texto & Marca d'água</span></h2>
@@ -268,7 +242,38 @@
         </main>
     </div>
 
-    <!-- EXPORT MODAL & TOAST (Omitidos p/ encurtar visualização. Manter iguais ao seu código original) -->
+    <!-- EXPORT MODAL -->
+    <div id="export-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 space-y-6 shadow-2xl">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 class="font-bold text-base text-slate-100 flex items-center space-x-2">
+                    <i class="fa-solid fa-download text-blue-500"></i>
+                    <span>Exportar Imagem</span>
+                </h3>
+                <button onclick="closeExportModal()" class="text-slate-400 hover:text-white transition cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="text-slate-400 font-medium block mb-1">Nome do Arquivo</label>
+                    <input type="text" id="export-name" value="rsb-edited-image" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
+                </div>
+                <div>
+                    <label class="text-slate-400 font-medium block mb-1">Formato do Arquivo</label>
+                    <select id="export-format" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
+                        <option value="image/png">PNG (Alta Qualidade / Transparência)</option>
+                        <option value="image/jpeg">JPEG (Menor Tamanho)</option>
+                        <option value="image/webp">WEBP (Moderno & Compacto)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button onclick="closeExportModal()" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition text-xs cursor-pointer">Cancelar</button>
+                <button onclick="executeExport()" class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white font-semibold rounded-xl transition text-xs shadow-lg shadow-blue-500/25 cursor-pointer">Baixar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION TOAST -->
     <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 border border-slate-700 text-white px-5 py-3 rounded-xl shadow-2xl z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-3 text-xs font-medium">
         <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i><span id="toast-msg">Mensagem</span>
     </div>
@@ -281,8 +286,7 @@
         let historyStack = [];
         let historyIndex = -1;
         let zoomFactor = 1.0;
-        let customBgColor = null;
-        let cropper = null; // Instância do Cropper.js
+        let cropper = null;
 
         window.onload = function() {
             currentCanvas = document.getElementById('image-canvas');
@@ -343,7 +347,6 @@
             document.querySelectorAll('.panel-content').forEach(p => p.classList.add('hidden'));
             document.getElementById('panel-' + tabId).classList.remove('hidden');
 
-            // Gerenciamento do Cropper.js (ativa ao entrar na aba CROP, remove ao sair)
             if (tabId === 'crop') {
                 if (!cropper && originalImage) initCropper();
             } else {
@@ -351,7 +354,6 @@
             }
         }
 
-        // --- CROPPER (RECORTES COM O MOUSE) ---
         function initCropper() {
             cropper = new Cropper(currentCanvas, {
                 viewMode: 1,
@@ -386,28 +388,24 @@
             if (!cropper) return;
             const croppedCanvas = cropper.getCroppedCanvas();
             
-            // Atualiza canvas principal
             currentCanvas.width = croppedCanvas.width;
             currentCanvas.height = croppedCanvas.height;
             currentCtx.clearRect(0,0,currentCanvas.width, currentCanvas.height);
             currentCtx.drawImage(croppedCanvas, 0, 0);
 
-            // Atualiza inputs de redimensionamento
             document.getElementById('resize-w').value = currentCanvas.width;
             document.getElementById('resize-h').value = currentCanvas.height;
 
             destroyCropper();
             
-            // Atualiza a originalImage para permitir filtros corretos depois
             const newImg = new Image();
             newImg.onload = () => { originalImage = newImg; pushHistory(); };
             newImg.src = currentCanvas.toDataURL();
             
             showToast("Recorte aplicado!");
-            initCropper(); // Reinicia cropper no novo tamanho
+            initCropper();
         }
 
-        // --- MANUTENÇÃO DE PROPORÇÃO (RESIZE) ---
         function updateResize(changedElement) {
             const wInput = document.getElementById('resize-w');
             const hInput = document.getElementById('resize-h');
@@ -443,76 +441,54 @@
             showToast(`Redimensionado para ${w}x${h}px`);
         }
 
-        // --- REMOÇÃO DE FUNDO INTELIGENTE (MODELO AI) ---
-        async function removeBackgroundAI() {
-            if (!originalImage) return;
-            
-            const btn = document.getElementById('btn-remove-bg');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Processando IA...</span>`;
-            btn.disabled = true;
-            showToast("Processando IA (O 1º uso baixa o modelo. Aguarde...)");
-
-            try {
-                // Chama a API do imgly para segmentar o assunto principal
-                const imageSrc = currentCanvas.toDataURL('image/png');
-                const blob = await imglyRemoveBackground(imageSrc);
-                const url = URL.createObjectURL(blob);
-                
-                const newImg = new Image();
-                newImg.onload = () => {
-                    currentCtx.clearRect(0, 0, currentCanvas.width, currentCanvas.height);
-                    currentCtx.drawImage(newImg, 0, 0);
-                    
-                    originalImage = newImg; // Atualiza base p/ filtros
-
-                    if (customBgColor) applyCustomBgToCanvas();
-                    pushHistory();
-                    
-                    showToast("Fundo removido com sucesso!");
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                };
-                newImg.src = url;
-            } catch(err) {
-                console.error(err);
-                showToast("Erro ao remover fundo. Verifique o console.", "error");
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
-
-        function setCustomBg(color) {
-            customBgColor = color;
-            applyCustomBgToCanvas();
-        }
-
-        function applyCustomBgToCanvas() {
+        function rotateImage(degrees) {
             if (!originalImage) return;
             const w = currentCanvas.width;
             const h = currentCanvas.height;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = h;
+            tempCanvas.height = w;
+            const tCtx = tempCanvas.getContext('2d');
+            tCtx.translate(h / 2, w / 2);
+            tCtx.rotate((degrees * Math.PI) / 180);
+            tCtx.drawImage(currentCanvas, -w / 2, -h / 2);
+            currentCanvas.width = h;
+            currentCanvas.height = w;
+            currentCtx.drawImage(tempCanvas, 0, 0);
+            
+            const newImg = new Image();
+            newImg.onload = () => { originalImage = newImg; pushHistory(); };
+            newImg.src = currentCanvas.toDataURL();
+            
+            document.getElementById('resize-w').value = h;
+            document.getElementById('resize-h').value = w;
+            showToast("Imagem rotacionada");
+        }
+
+        function flipImage(dir) {
+            if (!originalImage) return;
+            const w = currentCanvas.width;
+            const h = currentCanvas.height;
+
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = w;
             tempCanvas.height = h;
             const tCtx = tempCanvas.getContext('2d');
 
-            if (customBgColor === 'gradient') {
-                const grad = tCtx.createLinearGradient(0, 0, w, h);
-                grad.addColorStop(0, '#3b82f6');
-                grad.addColorStop(1, '#10b981');
-                tCtx.fillStyle = grad;
-                tCtx.fillRect(0, 0, w, h);
-            } else if (customBgColor !== 'transparent') {
-                tCtx.fillStyle = customBgColor;
-                tCtx.fillRect(0, 0, w, h);
-            }
-
+            tCtx.translate(dir === 'h' ? w : 0, dir === 'v' ? h : 0);
+            tCtx.scale(dir === 'h' ? -1 : 1, dir === 'v' ? -1 : 1);
             tCtx.drawImage(currentCanvas, 0, 0);
+
             currentCtx.clearRect(0, 0, w, h);
             currentCtx.drawImage(tempCanvas, 0, 0);
+
+            const newImg = new Image();
+            newImg.onload = () => { originalImage = newImg; pushHistory(); };
+            newImg.src = currentCanvas.toDataURL();
+
+            showToast("Inversão aplicada");
         }
 
-        // --- HISTORY & FILTERS (Igual ao seu original com pequenos ajustes) ---
         function pushHistory() {
             if (!originalImage) return;
             historyIndex++;
@@ -532,7 +508,6 @@
                 document.getElementById('btn-undo').disabled = historyIndex <= 0;
                 document.getElementById('btn-redo').disabled = historyIndex >= historyStack.length - 1;
                 
-                // Força atualização das labels de tamanho
                 document.getElementById('resize-w').value = currentCanvas.width;
                 document.getElementById('resize-h').value = currentCanvas.height;
             }
@@ -550,6 +525,19 @@
                 
                 document.getElementById('resize-w').value = currentCanvas.width;
                 document.getElementById('resize-h').value = currentCanvas.height;
+            }
+        }
+        
+        function startCompare() {
+            if (!originalImage) return;
+            currentCtx.clearRect(0, 0, currentCanvas.width, currentCanvas.height);
+            currentCtx.drawImage(originalImage, 0, 0);
+        }
+
+        function endCompare() {
+            if (historyIndex >= 0) {
+                const imgData = historyStack[historyIndex];
+                currentCtx.putImageData(imgData, 0, 0);
             }
         }
 
@@ -579,6 +567,56 @@
             currentCtx.drawImage(originalImage, 0, 0);
             currentCtx.filter = 'none';
         }
+        
+        function applyPresetFilter(type) {
+            if (!originalImage) return;
+            currentCtx.drawImage(originalImage, 0, 0);
+            const imgData = currentCtx.getImageData(0, 0, currentCanvas.width, currentCanvas.height);
+            const data = imgData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i], g = data[i+1], b = data[i+2];
+                if (type === 'grayscale') {
+                    const avg = 0.3 * r + 0.59 * g + 0.11 * b;
+                    data[i] = avg; data[i+1] = avg; data[i+2] = avg;
+                } else if (type === 'sepia') {
+                    data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+                    data[i+1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+                    data[i+2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+                } else if (type === 'vintage') {
+                    data[i] = Math.min(255, r * 1.1);
+                    data[i+1] = Math.min(255, g * 0.9);
+                    data[i+2] = Math.min(255, b * 0.8);
+                }
+            }
+            currentCtx.putImageData(imgData, 0, 0);
+            pushHistory();
+            showToast(`Filtro ${type} aplicado!`);
+        }
+
+        function applyWatermark() {
+            if (!originalImage) return;
+            const text = document.getElementById('watermark-text').value;
+            const color = document.getElementById('watermark-color').value;
+            const size = parseInt(document.getElementById('watermark-size').value);
+
+            currentCtx.font = `bold ${size}px Inter, sans-serif`;
+            currentCtx.fillStyle = color;
+            currentCtx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+            currentCtx.shadowBlur = 8;
+            currentCtx.shadowOffsetX = 2;
+            currentCtx.shadowOffsetY = 2;
+
+            const metrics = currentCtx.measureText(text);
+            const padding = 40;
+            const x = currentCanvas.width - metrics.width - padding;
+            const y = currentCanvas.height - padding;
+
+            currentCtx.fillText(text, x, y);
+            currentCtx.shadowBlur = 0; 
+            pushHistory();
+            showToast("Texto/Marca d'água inserido!");
+        }
 
         function resetAdjustments() {
             document.getElementById('brightness').value = 0;
@@ -598,39 +636,70 @@
             pushHistory();
             showToast("Imagem resetada");
         }
+        
+        function zoomIn() {
+            zoomFactor = Math.min(3.0, zoomFactor + 0.15);
+            updateZoom();
+        }
 
-        function rotateImage(degrees) {
-            if (!originalImage) return;
-            const w = currentCanvas.width;
-            const h = currentCanvas.height;
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = h;
-            tempCanvas.height = w;
-            const tCtx = tempCanvas.getContext('2d');
-            tCtx.translate(h / 2, w / 2);
-            tCtx.rotate((degrees * Math.PI) / 180);
-            tCtx.drawImage(currentCanvas, -w / 2, -h / 2);
-            currentCanvas.width = h;
-            currentCanvas.height = w;
-            currentCtx.drawImage(tempCanvas, 0, 0);
-            
-            // Corrige o original
-            const newImg = new Image();
-            newImg.onload = () => { originalImage = newImg; pushHistory(); };
-            newImg.src = currentCanvas.toDataURL();
-            
-            document.getElementById('resize-w').value = h;
-            document.getElementById('resize-h').value = w;
+        function zoomOut() {
+            zoomFactor = Math.max(0.3, zoomFactor - 0.15);
+            updateZoom();
+        }
+
+        function resetZoom() {
+            zoomFactor = 1.0;
+            updateZoom();
+        }
+
+        function updateZoom() {
+            currentCanvas.style.transform = `scale(${zoomFactor})`;
+            document.getElementById('zoom-level').innerText = Math.round(zoomFactor * 100) + '%';
+        }
+
+        function openExportModal() {
+            if (!originalImage) {
+                showToast("Carregue uma imagem primeiro!", "error");
+                return;
+            }
+            document.getElementById('export-modal').classList.remove('hidden');
+        }
+
+        function closeExportModal() {
+            document.getElementById('export-modal').classList.add('hidden');
+        }
+
+        function executeExport() {
+            const name = document.getElementById('export-name').value || 'rsb-image';
+            const format = document.getElementById('export-format').value;
+            const quality = 0.9;
+
+            const link = document.createElement('a');
+            link.download = `${name}.${format.split('/')[1]}`;
+            link.href = currentCanvas.toDataURL(format, quality);
+            link.click();
+
+            closeExportModal();
+            showToast("Imagem exportada com sucesso!");
         }
 
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = msg;
+            const msgEl = document.getElementById('toast-msg');
+            const iconEl = document.getElementById('toast-icon');
+
+            msgEl.innerText = msg;
+            if (type === 'error') {
+                iconEl.className = 'fa-solid fa-triangle-exclamation text-rose-400 text-base';
+            } else {
+                iconEl.className = 'fa-solid fa-circle-check text-emerald-400 text-base';
+            }
+
             toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3500);
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
         }
-        
-        // As demais funções menores (zoom, openExportModal) permanecem em seus devidos lugares...
     </script>
 </body>
 </html>
